@@ -1,6 +1,7 @@
 package name.skm.graph_test.graph;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Set;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -43,8 +43,8 @@ public class Graph<T> {
         this.directed = directed;
     }
 
-    private Set<T> vertices = new HashSet<>();
-    private Set<Edge<T>> edges = new HashSet<>();
+    private Collection<T> vertices = new HashSet<>();
+    private Collection<Edge<T>> edges = new HashSet<>();
 
     /**
      * @param vertex
@@ -67,8 +67,8 @@ public class Graph<T> {
     }
 
     public Optional<List<T>> getPath(T from, T to) {
-        Map<T, Set<T>> forwardIndex = new HashMap<>();
-        Map<T, Set<T>> backwardIndex = directed ? new HashMap<>() : forwardIndex;
+        Map<T, Collection<T>> forwardIndex = new HashMap<>();
+        Map<T, Collection<T>> backwardIndex = directed ? new HashMap<>() : forwardIndex;
         for (Edge<T> e : edges) {
             putPair(forwardIndex, e.getFrom(), e.getTo());
             putPair(backwardIndex, e.getTo(), e.getFrom());
@@ -95,16 +95,16 @@ public class Graph<T> {
         });
     }
 
-    private Optional<T> processOneElement(Map<T, Set<T>> index, Map<T, T> passed, Queue<T> queue, Map<T, T> backPassed) {
+    private Optional<T> processOneElement(Map<T, Collection<T>> index, Map<T, T> passed, Queue<T> queue, Map<T, T> backPassed) {
         T current = queue.poll();
-        return index.get(current).stream().filter((T t) -> !passed.containsKey(t)).map((T t) -> {
+        return index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !passed.containsKey(t)).map((T t) -> {
             passed.put(t, current);
             queue.add(t);
             return t;
         }).filter(backPassed::containsKey).findAny();
     }
 
-    void putPair(Map<T, Set<T>> map, T from, T to) {
+    void putPair(Map<T, Collection<T>> map, T from, T to) {
         map.computeIfAbsent(from, (T a) -> new HashSet<T>());
         map.get(from).add(to);
     }
