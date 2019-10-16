@@ -90,9 +90,9 @@ public class Graph<T> {
     private static <T> Optional<List<T>> performPathSearch(WaveSearchState<T> forwardWaveState, WaveSearchState<T> backwardWaveState) {
         Optional<T> bridge = Optional.empty();
         while (!forwardWaveState.queue.isEmpty() && !backwardWaveState.queue.isEmpty() && !bridge.isPresent()) {
-            bridge = stepAndReachTarget(forwardWaveState);
+            bridge = forwardWaveState.stepAndReachTarget();
             if (!bridge.isPresent()) {
-                bridge = stepAndReachTarget(backwardWaveState);
+                bridge = backwardWaveState.stepAndReachTarget();
             }
         }
         return bridge.map((T t) -> {
@@ -105,15 +105,6 @@ public class Graph<T> {
             }
             return result;
         });
-    }
-
-    private static <T> Optional<T> stepAndReachTarget(WaveSearchState<T> parameterObject) {
-        T current = parameterObject.queue.poll();
-        return parameterObject.index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !parameterObject.backTrace.containsKey(t)).map((T t) -> {
-            parameterObject.backTrace.put(t, current);
-            parameterObject.queue.add(t);
-            return t;
-        }).filter(parameterObject.targets::contains).findAny();
     }
 
 }
