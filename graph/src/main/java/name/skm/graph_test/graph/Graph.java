@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-
 import lombok.Data;
 import lombok.NonNull;
 
@@ -62,8 +61,8 @@ public class Graph<T> {
      *         specified vertices
      */
     public boolean addEdge(T from, T to) {
-    	addVertex(from);
-    	addVertex(to);
+        addVertex(from);
+        addVertex(to);
         Edge<T> edge = new Edge<>(from, to);
         return edges.add(edge);
     }
@@ -82,28 +81,30 @@ public class Graph<T> {
 
         Optional<T> bridge = Optional.empty();
         while (!forwardQueue.isEmpty() && !backwardQueue.isEmpty() && !bridge.isPresent()) {
-            bridge = processOneElement(forwardIndex, forwardTracks, forwardQueue, backwardTracks);
-            if (bridge.isPresent())
-                break;
-            bridge = processOneElement(backwardIndex, backwardTracks, backwardQueue, forwardTracks);
+            bridge = stepAndReachTarget(forwardIndex, forwardTracks, forwardQueue, backwardTracks.keySet());
+            if (!bridge.isPresent()) {
+                bridge = stepAndReachTarget(backwardIndex, backwardTracks, backwardQueue, forwardTracks.keySet());
+            }
         }
         return bridge.map((T t) -> {
             LinkedList<T> result = new LinkedList<>(Arrays.asList(t));
-            for (T i = backwardTracks.get(t); i != null; i = backwardTracks.get(i))
+            for (T i = backwardTracks.get(t); i != null; i = backwardTracks.get(i)) {
                 result.addLast(i);
-            for (T i = forwardTracks.get(t); i != null; i = forwardTracks.get(i))
+            }
+            for (T i = forwardTracks.get(t); i != null; i = forwardTracks.get(i)) {
                 result.addFirst(i);
+            }
             return result;
         });
     }
 
-    private Optional<T> processOneElement(Map<T, Collection<T>> index, Map<T, T> passed, Queue<T> queue, Map<T, T> backPassed) {
+    private Optional<T> stepAndReachTarget(Map<T, Collection<T>> index, Map<T, T> passed, Queue<T> queue, Collection<T> target) {
         T current = queue.poll();
         return index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !passed.containsKey(t)).map((T t) -> {
             passed.put(t, current);
             queue.add(t);
             return t;
-        }).filter(backPassed::containsKey).findAny();
+        }).filter(target::contains).findAny();
     }
 
     void putPair(Map<T, Collection<T>> map, T from, T to) {
