@@ -10,12 +10,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import lombok.Data;
 import lombok.NonNull;
 
 public class Graph<T> {
 
-    private boolean directed = false;
+    private boolean directed = true;
 
     @Data
     public static class Edge<T> {
@@ -68,46 +74,55 @@ public class Graph<T> {
     }
 
     public Optional<List<T>> getPath(T from, T to) {
-        Map<T, Collection<T>> forwardIndex = new HashMap<>();
-        Map<T, Collection<T>> backwardIndex = directed ? new HashMap<>() : forwardIndex;
-        for (Edge<T> e : edges) {
-            putPair(forwardIndex, e.getFrom(), e.getTo());
-            putPair(backwardIndex, e.getTo(), e.getFrom());
-        }
+        Collector<Edge<T>, ?, Map<T, Collection<T>>> toIndex = Collectors.groupingBy(Edge::getFrom, HashMap::new, Collectors.mapping(Edge::getTo, Collectors.toCollection(HashSet::new)));
+//        Map<T, Collection<T>> forwardIndex = new HashMap<>();
+        Map<T, Collection<T>> forwardIndex = edges.stream().collect(toIndex);
+//        Map<T, Collection<T>> backwardIndex = directed ? new HashMap<>() : forwardIndex;
+        Map<T, Collection<T>> backwardIndex = directed ? edges.stream().map(Edge::getReversed).collect(toIndex) : forwardIndex;
+//        for (Edge<T> e : edges) {
+//            putPair(forwardIndex, e.getFrom(), e.getTo());
+//            putPair(backwardIndex, e.getTo(), e.getFrom());
+//        }
         Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
         Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
         Queue<T> forwardQueue = new LinkedList<>(Arrays.asList(from));
         Queue<T> backwardQueue = new LinkedList<>(Arrays.asList(to));
 
+        WaveSearchState<T> forwardWaveState = new WaveSearchState<T>(forwardIndex, forwardTracks, forwardQueue, backwardTracks.keySet());
+        WaveSearchState<T> backwardWaveState = new WaveSearchState<T>(backwardIndex, backwardTracks, backwardQueue, forwardTracks.keySet());
+        return performPathSearch(forwardWaveState, backwardWaveState);
+    }
+
+    private static <T> Optional<List<T>> performPathSearch(WaveSearchState<T> forwardWaveState, WaveSearchState<T> backwardWaveState) {
         Optional<T> bridge = Optional.empty();
-        while (!forwardQueue.isEmpty() && !backwardQueue.isEmpty() && !bridge.isPresent()) {
-            bridge = stepAndReachTarget(forwardIndex, forwardTracks, forwardQueue, backwardTracks.keySet());
+        while (!forwardWaveState.queue.isEmpty() && !backwardWaveState.queue.isEmpty() && !bridge.isPresent()) {
+            bridge = stepAndReachTarget(forwardWaveState);
             if (!bridge.isPresent()) {
-                bridge = stepAndReachTarget(backwardIndex, backwardTracks, backwardQueue, forwardTracks.keySet());
+                bridge = stepAndReachTarget(backwardWaveState);
             }
         }
         return bridge.map((T t) -> {
             LinkedList<T> result = new LinkedList<>(Arrays.asList(t));
-            for (T i = backwardTracks.get(t); i != null; i = backwardTracks.get(i)) {
+            for (T i = backwardWaveState.backTrace.get(t); i != null; i = backwardWaveState.backTrace.get(i)) {
                 result.addLast(i);
             }
-            for (T i = forwardTracks.get(t); i != null; i = forwardTracks.get(i)) {
+            for (T i = forwardWaveState.backTrace.get(t); i != null; i = forwardWaveState.backTrace.get(i)) {
                 result.addFirst(i);
             }
             return result;
         });
     }
 
-    private Optional<T> stepAndReachTarget(Map<T, Collection<T>> index, Map<T, T> passed, Queue<T> queue, Collection<T> target) {
-        T current = queue.poll();
-        return index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !passed.containsKey(t)).map((T t) -> {
-            passed.put(t, current);
-            queue.add(t);
+    private static <T> Optional<T> stepAndReachTarget(WaveSearchState<T> parameterObject) {
+        T current = parameterObject.queue.poll();
+        return parameterObject.index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !parameterObject.backTrace.containsKey(t)).map((T t) -> {
+            parameterObject.backTrace.put(t, current);
+            parameterObject.queue.add(t);
             return t;
-        }).filter(target::contains).findAny();
+        }).filter(parameterObject.target::contains).findAny();
     }
 
-    void putPair(Map<T, Collection<T>> map, T from, T to) {
+    private static <T> void putPair(Map<T, Collection<T>> map, T from, T to) {
         map.computeIfAbsent(from, (T a) -> new HashSet<T>());
         map.get(from).add(to);
     }
