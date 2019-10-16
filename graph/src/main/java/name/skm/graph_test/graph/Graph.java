@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Suppliers;
+
 import lombok.Data;
 import lombok.NonNull;
 
@@ -74,17 +76,19 @@ public class Graph<T> {
     }
 
     public Optional<List<T>> getPath(T from, T to) {
-        Collector<Edge<T>, ?, Map<T, Collection<T>>> toIndex = Collectors.groupingBy(Edge::getFrom, HashMap::new, Collectors.mapping(Edge::getTo, Collectors.toCollection(HashSet::new)));
+        Collector<Edge<T>, ?, Map<T, Collection<T>>> toIndex = createToIndexCollector(HashMap::new);
         Map<T, Collection<T>> forwardIndex = edges.stream().collect(toIndex);
-        Map<T, Collection<T>> backwardIndex = directed ? edges.stream().map(Edge::getReversed).collect(toIndex) : forwardIndex;
+        // if !this.directed then shall appear physically the same object as forwardIndex
+        Map<T, Collection<T>> backwardIndex = edges.stream().map(Edge::getReversed).collect(( Collector<Edge<T>, ?, Map<T, Collection<T>>>)(directed ? toIndex : createToIndexCollector(Suppliers.ofInstance(forwardIndex))));
         Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
         Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
-        Queue<T> forwardQueue = new LinkedList<>(Arrays.asList(from));
-        Queue<T> backwardQueue = new LinkedList<>(Arrays.asList(to));
-
-        WaveSearchState<T> forwardWaveState = new WaveSearchState<T>(forwardIndex, forwardTracks, forwardQueue, backwardTracks.keySet());
-        WaveSearchState<T> backwardWaveState = new WaveSearchState<T>(backwardIndex, backwardTracks, backwardQueue, forwardTracks.keySet());
+        WaveSearchState<T> forwardWaveState = new WaveSearchState<T>(forwardIndex, forwardTracks, new LinkedList<>(Arrays.asList(from)), backwardTracks.keySet());
+        WaveSearchState<T> backwardWaveState = new WaveSearchState<T>(backwardIndex, backwardTracks, new LinkedList<>(Arrays.asList(to)), forwardTracks.keySet());
         return performPathSearch(forwardWaveState, backwardWaveState);
+    }
+
+    private Collector<Edge<T>, ?, Map<T, Collection<T>>> createToIndexCollector(Supplier<Map<T, Collection<T>>> mapFactory) {
+        return Collectors.groupingBy(Edge::getFrom, mapFactory, Collectors.mapping(Edge::getTo, Collectors.toCollection(HashSet::new)));
     }
 
     private static <T> Optional<List<T>> performPathSearch(WaveSearchState<T> forwardWaveState, WaveSearchState<T> backwardWaveState) {
