@@ -51,7 +51,7 @@ public class Graph<T> {
      * @return <tt>true</tt> if this graph did not already contain the specified
      *         vertex
      */
-    public boolean addVertix(T vertex) {
+    public boolean addVertex(T vertex) {
         return vertices.add(vertex);
     }
 
@@ -62,6 +62,8 @@ public class Graph<T> {
      *         specified vertices
      */
     public boolean addEdge(T from, T to) {
+    	addVertex(from);
+    	addVertex(to);
         Edge<T> edge = new Edge<>(from, to);
         return edges.add(edge);
     }
@@ -86,10 +88,10 @@ public class Graph<T> {
             bridge = processOneElement(backwardIndex, backwardTracks, backwardQueue, forwardTracks);
         }
         return bridge.map((T t) -> {
-            LinkedList<T> result = new LinkedList<T>();
-            for (T i = t; i != null; i = backwardTracks.get(i))
+            LinkedList<T> result = new LinkedList<>(Arrays.asList(t));
+            for (T i = backwardTracks.get(t); i != null; i = backwardTracks.get(i))
                 result.addLast(i);
-            for (T i = t; i != null; i = forwardTracks.get(i))
+            for (T i = forwardTracks.get(t); i != null; i = forwardTracks.get(i))
                 result.addFirst(i);
             return result;
         });
