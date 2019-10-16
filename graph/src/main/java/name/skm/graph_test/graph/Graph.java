@@ -75,14 +75,8 @@ public class Graph<T> {
 
     public Optional<List<T>> getPath(T from, T to) {
         Collector<Edge<T>, ?, Map<T, Collection<T>>> toIndex = Collectors.groupingBy(Edge::getFrom, HashMap::new, Collectors.mapping(Edge::getTo, Collectors.toCollection(HashSet::new)));
-//        Map<T, Collection<T>> forwardIndex = new HashMap<>();
         Map<T, Collection<T>> forwardIndex = edges.stream().collect(toIndex);
-//        Map<T, Collection<T>> backwardIndex = directed ? new HashMap<>() : forwardIndex;
         Map<T, Collection<T>> backwardIndex = directed ? edges.stream().map(Edge::getReversed).collect(toIndex) : forwardIndex;
-//        for (Edge<T> e : edges) {
-//            putPair(forwardIndex, e.getFrom(), e.getTo());
-//            putPair(backwardIndex, e.getTo(), e.getFrom());
-//        }
         Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
         Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
         Queue<T> forwardQueue = new LinkedList<>(Arrays.asList(from));
@@ -120,11 +114,6 @@ public class Graph<T> {
             parameterObject.queue.add(t);
             return t;
         }).filter(parameterObject.target::contains).findAny();
-    }
-
-    private static <T> void putPair(Map<T, Collection<T>> map, T from, T to) {
-        map.computeIfAbsent(from, (T a) -> new HashSet<T>());
-        map.get(from).add(to);
     }
 
 }
