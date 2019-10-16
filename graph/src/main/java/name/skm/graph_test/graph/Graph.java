@@ -1,11 +1,9 @@
 package name.skm.graph_test.graph;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,32 +77,12 @@ public class Graph<T> {
                 .collect((Collector<Edge<T>, ?, Map<T, Collection<T>>>) (directed ? toNewIndex : createToIndexCollector(() -> forwardIndex)));
         Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
         Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
-        return performPathSearch(WaveSearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet()),
+        return Utils.performPathSearch(WaveSearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet()),
                 WaveSearchState.create(to, backwardIndex, backwardTracks, forwardTracks.keySet()));
     }
 
     private Collector<Edge<T>, ?, Map<T, Collection<T>>> createToIndexCollector(Supplier<Map<T, Collection<T>>> mapFactory) {
         return Collectors.groupingBy(Edge::getFrom, mapFactory, Collectors.mapping(Edge::getTo, Collectors.toCollection(HashSet::new)));
-    }
-
-    private static <T> Optional<List<T>> performPathSearch(WaveSearchState<T> forwardWaveState, WaveSearchState<T> backwardWaveState) {
-        Optional<T> bridge = Optional.empty();
-        while (!forwardWaveState.queue.isEmpty() && !backwardWaveState.queue.isEmpty() && !bridge.isPresent()) {
-            bridge = forwardWaveState.stepAndReachTarget();
-            if (!bridge.isPresent()) {
-                bridge = backwardWaveState.stepAndReachTarget();
-            }
-        }
-        return bridge.map((T t) -> {
-            LinkedList<T> result = new LinkedList<>(Arrays.asList(t));
-            for (T i = backwardWaveState.backTrace.get(t); i != null; i = backwardWaveState.backTrace.get(i)) {
-                result.addLast(i);
-            }
-            for (T i = forwardWaveState.backTrace.get(t); i != null; i = forwardWaveState.backTrace.get(i)) {
-                result.addFirst(i);
-            }
-            return result;
-        });
     }
 
 }
