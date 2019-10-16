@@ -9,14 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import com.google.common.base.Suppliers;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -76,15 +71,16 @@ public class Graph<T> {
     }
 
     public Optional<List<T>> getPath(T from, T to) {
-        Collector<Edge<T>, ?, Map<T, Collection<T>>> toIndex = createToIndexCollector(HashMap::new);
-        Map<T, Collection<T>> forwardIndex = edges.stream().collect(toIndex);
-        // if !this.directed then shall appear physically the same object as forwardIndex
-        Map<T, Collection<T>> backwardIndex = edges.stream().map(Edge::getReversed).collect(( Collector<Edge<T>, ?, Map<T, Collection<T>>>)(directed ? toIndex : createToIndexCollector(Suppliers.ofInstance(forwardIndex))));
+        Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = createToIndexCollector(HashMap::new);
+        Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
+        // if !this.directed then shall appear physically the same object as
+        // forwardIndex
+        Map<T, Collection<T>> backwardIndex = edges.stream().map(Edge::getReversed)
+                .collect((Collector<Edge<T>, ?, Map<T, Collection<T>>>) (directed ? toNewIndex : createToIndexCollector(() -> forwardIndex)));
         Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
         Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
-        WaveSearchState<T> forwardWaveState = new WaveSearchState<T>(forwardIndex, forwardTracks, new LinkedList<>(Arrays.asList(from)), backwardTracks.keySet());
-        WaveSearchState<T> backwardWaveState = new WaveSearchState<T>(backwardIndex, backwardTracks, new LinkedList<>(Arrays.asList(to)), forwardTracks.keySet());
-        return performPathSearch(forwardWaveState, backwardWaveState);
+        return performPathSearch(WaveSearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet()),
+                WaveSearchState.create(to, backwardIndex, backwardTracks, forwardTracks.keySet()));
     }
 
     private Collector<Edge<T>, ?, Map<T, Collection<T>>> createToIndexCollector(Supplier<Map<T, Collection<T>>> mapFactory) {
@@ -117,7 +113,7 @@ public class Graph<T> {
             parameterObject.backTrace.put(t, current);
             parameterObject.queue.add(t);
             return t;
-        }).filter(parameterObject.target::contains).findAny();
+        }).filter(parameterObject.targets::contains).findAny();
     }
 
 }
