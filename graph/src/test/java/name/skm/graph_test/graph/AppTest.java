@@ -19,7 +19,7 @@ public class AppTest {
 	 */
 	@Test
 	public void shouldAnswerWithTrue() {
-		Graph<Integer> graph = new Graph<Integer>();
+		GraphLike<Integer> graph = new Graph<Integer>();
 		graph.addEdge(1, 5);
 		graph.addEdge(1, 6);
 		graph.addEdge(88, 100);

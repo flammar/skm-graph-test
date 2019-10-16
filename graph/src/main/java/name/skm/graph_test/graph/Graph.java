@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NonNull;
 
-public class Graph<T> {
+public class Graph<T> implements GraphLike<T> {
 
     private boolean directed = true;
 
@@ -35,40 +35,49 @@ public class Graph<T> {
         }
     }
 
-    public boolean isDirected() {
+    /* (non-Javadoc)
+	 * @see name.skm.graph_test.graph.GraphLike#isDirected()
+	 */
+    @Override
+	public boolean isDirected() {
         return directed;
     }
 
-    public void setDirected(boolean directed) {
+    /* (non-Javadoc)
+	 * @see name.skm.graph_test.graph.GraphLike#setDirected(boolean)
+	 */
+    @Override
+	public void setDirected(boolean directed) {
         this.directed = directed;
     }
 
     private Collection<T> vertices = new HashSet<>();
     private Collection<Edge<T>> edges = new HashSet<>();
 
-    /**
-     * @param vertex
-     * @return <tt>true</tt> if this graph did not already contain the specified
-     *         vertex
-     */
-    public boolean addVertex(T vertex) {
+    /* (non-Javadoc)
+	 * @see name.skm.graph_test.graph.GraphLike#addVertex(T)
+	 */
+    @Override
+	public boolean addVertex(T vertex) {
         return vertices.add(vertex);
     }
 
-    /**
-     * @param from
-     * @param to
-     * @return <tt>true</tt> if this graph did not already contain an edge with the
-     *         specified vertices
-     */
-    public boolean addEdge(T from, T to) {
+    /* (non-Javadoc)
+	 * @see name.skm.graph_test.graph.GraphLike#addEdge(T, T)
+	 */
+    @Override
+	public boolean addEdge(T from, T to) {
         addVertex(from);
         addVertex(to);
         Edge<T> edge = new Edge<>(from, to);
         return edges.add(edge);
     }
 
-    public Optional<List<T>> getPath(T from, T to) {
+    /* (non-Javadoc)
+	 * @see name.skm.graph_test.graph.GraphLike#getPath(T, T)
+	 */
+    @Override
+	public Optional<List<T>> getPath(T from, T to) {
         Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = createToIndexCollector(HashMap::new);
         Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
         // if !this.directed then shall appear physically the same object as
