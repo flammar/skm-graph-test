@@ -18,43 +18,54 @@ public class Graph<T> implements GraphLike<T> {
 
     private boolean directed = true;
 
-    @Data
-    public static class Edge<T> {
-        public Edge(T from, T to) {
-            this.from = from;
-            this.to = to;
-        }
+    private Collection<T> vertices = new HashSet<>();
 
-        @NonNull
-        private T from;
-        @NonNull
-        private T to;
+	private Collection<Edge<T>> edges = new HashSet<>();
 
-        public Edge<T> getReversed() {
-            return new Edge<T>(to, from);
-        }
-    }
+	@Data
+	public static class Edge<T> {
+	    public Edge(T from, T to) {
+	        this.from = from;
+	        this.to = to;
+	    }
+	
+	    @NonNull
+	    private T from;
+	    @NonNull
+	    private T to;
+	
+	    public Edge<T> getReversed() {
+	        return new Edge<T>(to, from);
+	    }
+	}
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see name.skm.graph_test.graph.GraphLike#isDirected()
 	 */
-    @Override
+	@Override
 	public boolean isDirected() {
-        return directed;
-    }
+	    return directed;
+	}
 
-    /* (non-Javadoc)
+	/* (non-Javadoc)
 	 * @see name.skm.graph_test.graph.GraphLike#setDirected(boolean)
 	 */
-    @Override
+	@Override
 	public void setDirected(boolean directed) {
-        this.directed = directed;
-    }
+	    this.directed = directed;
+	}
 
-    private Collection<T> vertices = new HashSet<>();
-    private Collection<Edge<T>> edges = new HashSet<>();
+	@Override
+	public Collection<T> getVertices() {
+		return Collections.unmodifiableCollection(vertices);
+	}
 
-    /* (non-Javadoc)
+	@Override
+	public Collection<Edge<T>> getEdges() {
+		return Collections.unmodifiableCollection(edges);
+	}
+
+	/* (non-Javadoc)
 	 * @see name.skm.graph_test.graph.GraphLike#addVertex(T)
 	 */
     @Override

@@ -1,7 +1,10 @@
 package name.skm.graph_test.graph;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import name.skm.graph_test.graph.Graph.Edge;
 
 public interface GraphLike<T> {
 
@@ -25,5 +28,9 @@ public interface GraphLike<T> {
 	boolean addEdge(T from, T to);
 
 	Optional<List<T>> getPath(T from, T to);
+
+	Collection<T> getVertices();
+
+	Collection<Edge<T>> getEdges();
 
 }
