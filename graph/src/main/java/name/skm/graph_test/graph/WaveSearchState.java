@@ -23,11 +23,12 @@ public class WaveSearchState<T> {
 
     public <U> Optional<T> stepAndReachTarget() {
 		T current = this.queue.poll();
-		return this.index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !this.backTrace.containsKey(t)).map((T t) -> {
+		Optional<T> result = this.index.getOrDefault(current, Collections.emptySet()).stream().filter((T t) -> !this.backTrace.containsKey(t)).map((T t) -> {
 		    this.backTrace.put(t, current);
 		    this.queue.add(t);
 		    return t;
 		}).filter(this.targets::contains).findAny();
+		return result;
 	}
 
     public static <T> WaveSearchState<T> create(T from, Map<T, Collection<T>> index, Map<T, T> tracks, Collection<T> targets) {
