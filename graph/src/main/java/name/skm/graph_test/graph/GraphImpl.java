@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
-public class Graph<T> implements GraphLike<T> {
+public class GraphImpl<T> implements GraphLike<T> {
 
     /**
      * Can be arbitrary changed at any time, influences only path-searching function behavior when the latter is run.

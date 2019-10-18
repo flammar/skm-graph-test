@@ -14,7 +14,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
- * Class that encapsulated "getPath" logic and decouples it from the {@link Graph} structure itself. 
+ * Class that encapsulated "getPath" logic and decouples it from the {@link GraphImpl} structure itself. 
  * 
  * @author Michael Skidan
  *
@@ -34,7 +34,7 @@ public enum PathFinder {
 	 */
 	FORWARD {
 
-	    public <T> Optional<List<T>> getPath(Graph<T> graph, T from, T to) {
+	    public <T> Optional<List<T>> getPath(GraphLike<T> graph, T from, T to) {
 	        Collection<Edge<T>> edges = graph.getEdges();
             Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = PathFinder.createToIndexCollector(HashMap::new);
             Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
@@ -53,7 +53,7 @@ public enum PathFinder {
 	    }
 	};
 
-    public <T> Optional<List<T>> getPath(Graph<T> graph, T from, T to) {
+    public <T> Optional<List<T>> getPath(GraphLike<T> graph, T from, T to) {
 		Collection<Edge<T>> edges = graph.getEdges();
         Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = PathFinder.createToIndexCollector(HashMap::new);
         Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);

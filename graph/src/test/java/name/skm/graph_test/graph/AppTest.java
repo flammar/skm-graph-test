@@ -20,7 +20,7 @@ public class AppTest {
 	 */
 	@Test
 	public void shouldAnswerWithTrue() {
-		Graph<Integer> graph = new Graph<Integer>();
+		GraphImpl<Integer> graph = new GraphImpl<Integer>();
 		graph.addEdge(1, 5);
 		graph.addEdge(1, 6);
 		graph.addEdge(88, 100);
@@ -42,7 +42,7 @@ public class AppTest {
 
 	}
 
-	private void testPathFinder(PathFinder pf, Graph<Integer> graph) {
+	private void testPathFinder(PathFinder pf, GraphImpl<Integer> graph) {
         graph.setDirected(true);
 		Optional<List<Integer>> path = pf.getPath(graph, 1, 100);
 		assertTrue( path.isPresent() );
