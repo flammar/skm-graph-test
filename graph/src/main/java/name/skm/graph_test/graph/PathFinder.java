@@ -13,8 +13,26 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+/**
+ * Class that encapsulated "getPath" logic and decouples it from the {@link Graph} structure itself. 
+ * 
+ * @author Michael Skidan
+ *
+ */
 public enum PathFinder {
-	BIDIRECTIONAL, FORWARD {
+	/**
+	 * 
+	 * @author Michael Skidan
+	 * 
+	 * Runs two breadth-search (Lee algorithm) waves towards each other.
+	 */
+	BIDIRECTIONAL, /**
+	 * @author Michael Skidan
+	 * 
+	 * Runs one forward-directed breadth-search (Lee algorithm) wave to the target.
+	 *
+	 */
+	FORWARD {
 
 		@Override
 		public <T> Optional<List<T>> getPath(Collection<Edge<T>> edges, T from, T to, boolean directed) {
@@ -27,7 +45,7 @@ public enum PathFinder {
 			}
 			Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
 			Set<T> keySet = Collections.singleton(to);
-			WaveSearchState<T> searchState = WaveSearchState.create(from, forwardIndex, forwardTracks, keySet);
+			SearchState<T> searchState = SearchState.create(from, forwardIndex, forwardTracks, keySet);
 			Optional<T> bridge = Optional.empty();
 			for (; !searchState.queue.isEmpty() && !bridge.isPresent(); bridge = searchState
 					.stepAndReachTarget());
@@ -45,13 +63,13 @@ public enum PathFinder {
 		Map<T, Collection<T>> backwardIndex = edges.stream().map(Edge::getReversed).collect(toBackwardIndex);
 		Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
 		Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
-		WaveSearchState<T> forwardSearchState = WaveSearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet());
-		WaveSearchState<T> backwardSearchState = WaveSearchState.create(to, backwardIndex, backwardTracks, forwardTracks.keySet());
+		SearchState<T> forwardSearchState = SearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet());
+		SearchState<T> backwardSearchState = SearchState.create(to, backwardIndex, backwardTracks, forwardTracks.keySet());
 		Optional<T> bridge = Optional.empty();
 		while (!forwardSearchState.queue.isEmpty() && !backwardSearchState.queue.isEmpty() && !bridge.isPresent()) {
 			bridge = forwardSearchState.stepAndReachTarget();
 			if (!bridge.isPresent()) {
-				bridge = ((WaveSearchState<T>) backwardSearchState).stepAndReachTarget();
+				bridge = ((SearchState<T>) backwardSearchState).stepAndReachTarget();
 			}
 		}
 		return bridge.map((T t) -> {

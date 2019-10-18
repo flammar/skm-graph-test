@@ -6,6 +6,9 @@ import java.util.HashSet;
 
 public class Graph<T> implements GraphLike<T> {
 
+    /**
+     * Can be arbitrary changed at any time, influences only path-searching function behavior when the latter is run.
+     */
     private boolean directed = true;
 
     private Collection<T> vertices = new HashSet<>();
