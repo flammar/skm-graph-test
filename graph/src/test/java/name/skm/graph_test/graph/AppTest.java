@@ -46,25 +46,21 @@ public class AppTest {
 
 	private void testPathFinder(PathFinder pf, Graph<Integer> graph) {
         graph.setDirected(true);
-		Optional<List<Integer>> path = getPath(graph, 1, 100, pf);
+		Optional<List<Integer>> path = pf.getPath(graph, 1, 100);
 		assertTrue( path.isPresent() );
         System.out.println(path);
 		assertEquals(path.get(), Arrays.asList(1, 6, 16, 88, 100));
-		Optional<List<Integer>> path2 = getPath(graph, 1, 200, pf);
+		Optional<List<Integer>> path2 = pf.getPath(graph, 1, 200);
         System.out.println(path2);
         assertFalse( path2.isPresent() );
         graph.setDirected(false);
-        Optional<List<Integer>> path3 = getPath(graph, 1, 100, pf);
+        Optional<List<Integer>> path3 = pf.getPath(graph, 1, 100);
         assertTrue( path3.isPresent() );
         assertEquals(path3.get(), Arrays.asList(1, 5, 100));
         System.out.println(path3);
-        Optional<List<Integer>> path4 = getPath(graph, 1, 200, pf);
+        Optional<List<Integer>> path4 = pf.getPath(graph, 1, 200);
         assertTrue( path4.isPresent() );
         assertEquals(path4.get(), Arrays.asList(1, 6, 200));
         System.out.println(path4);
-	}
-
-	private Optional<List<Integer>> getPath(Graph<Integer> graph, int from, int to, PathFinder pf) {
-		return pf.getPath( graph.getEdges(), from, to, graph.isDirected());
 	}
 }

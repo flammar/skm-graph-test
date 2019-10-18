@@ -62,24 +62,18 @@ public enum PathFinder {
 		});
 	}
 
-	static <T> List<T> buildPath(WaveSearchState<T> forwardWaveState, T t, WaveSearchState<T> backwardWaveState) {
-		LinkedList<T> result = new LinkedList<>();
-		if (backwardWaveState != null) {
-			addToResult(backwardWaveState.backTrace.get(t), backwardWaveState.backTrace, result);
-		Collections.reverse(result);
-		}
-		addToResult(t, forwardWaveState.backTrace, result);
-		return result;
+	public <T> Optional<List<T>> getPath(Graph<T> graph, T from, T to) {
+		return getPath( graph.getEdges(), from, to, graph.isDirected());
 	}
 
-	private static <T> LinkedList<T>  addToResult(T start, Map<T, T> backTrace, LinkedList<T> result) {
+	private static <T> LinkedList<T> addToResult(T start, Map<T, T> backTrace, LinkedList<T> result) {
 		for (T i = start; i != null; i = backTrace.get(i)) {
 			result.addFirst(i);
 		}
 		return result;
 	}
 
-	static <U> Collector<Edge<U>, ?, Map<U, Collection<U>>> createToIndexCollector(
+	private static <U> Collector<Edge<U>, ?, Map<U, Collection<U>>> createToIndexCollector(
 			Supplier<Map<U, Collection<U>>> mapFactory) {
 		return Collectors.groupingBy(Edge::getFrom, mapFactory,
 				Collectors.mapping(Edge::getTo, Collectors.toCollection(HashSet::new)));
