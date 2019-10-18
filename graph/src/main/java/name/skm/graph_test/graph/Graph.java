@@ -2,7 +2,7 @@ package name.skm.graph_test.graph;
 
 import java.util.Collection;
 
-public interface GraphLike<T> {
+public interface Graph<T> {
 
 	boolean isDirected();
 
