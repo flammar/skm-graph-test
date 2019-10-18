@@ -14,12 +14,13 @@ import org.junit.Test;
  * Unit test for simple App.
  */
 public class AppTest {
+
 	/**
 	 * Rigorous Test :-)
 	 */
 	@Test
 	public void shouldAnswerWithTrue() {
-		GraphLike<Integer> graph = new Graph<Integer>();
+		Graph<Integer> graph = new Graph<Integer>();
 		graph.addEdge(1, 5);
 		graph.addEdge(1, 6);
 		graph.addEdge(88, 100);
@@ -35,25 +36,35 @@ public class AppTest {
 		graph.addEdge(16, 88);
         graph.addEdge(200, 6);
         graph.addEdge(100, 5);
-
-		Optional<List<Integer>> path = graph.getPath(1, 100);
-		assertTrue( path.isPresent() );
-		assertEquals(path.get(), Arrays.asList(1, 6, 16, 88, 100));
-        System.out.println(path);
-		Optional<List<Integer>> path2 = graph.getPath(1, 200);
-        System.out.println(path2);
-        assertFalse( path2.isPresent() );
-        graph.setDirected(false);
-        Optional<List<Integer>> path3 = graph.getPath(1, 100);
-        assertTrue( path3.isPresent() );
-        assertEquals(path3.get(), Arrays.asList(1, 5, 100));
-        System.out.println(path3);
-        Optional<List<Integer>> path4 = graph.getPath(1, 200);
-        assertTrue( path4.isPresent() );
-        assertEquals(path4.get(), Arrays.asList(1, 6, 200));
-        System.out.println(path4);
+        
+    	testPathFinder(PathFinder.BIDIRECTIONAL, graph);
+    	testPathFinder(PathFinder.FORWARD, graph);
 
         
 		// assertTrue( true );
+	}
+
+	private void testPathFinder(PathFinder pf, Graph<Integer> graph) {
+        graph.setDirected(true);
+		Optional<List<Integer>> path = getPath(graph, 1, 100, pf);
+		assertTrue( path.isPresent() );
+        System.out.println(path);
+		assertEquals(path.get(), Arrays.asList(1, 6, 16, 88, 100));
+		Optional<List<Integer>> path2 = getPath(graph, 1, 200, pf);
+        System.out.println(path2);
+        assertFalse( path2.isPresent() );
+        graph.setDirected(false);
+        Optional<List<Integer>> path3 = getPath(graph, 1, 100, pf);
+        assertTrue( path3.isPresent() );
+        assertEquals(path3.get(), Arrays.asList(1, 5, 100));
+        System.out.println(path3);
+        Optional<List<Integer>> path4 = getPath(graph, 1, 200, pf);
+        assertTrue( path4.isPresent() );
+        assertEquals(path4.get(), Arrays.asList(1, 6, 200));
+        System.out.println(path4);
+	}
+
+	private Optional<List<Integer>> getPath(Graph<Integer> graph, int from, int to, PathFinder pf) {
+		return pf.getPath( graph.getEdges(), from, to, graph.isDirected());
 	}
 }
