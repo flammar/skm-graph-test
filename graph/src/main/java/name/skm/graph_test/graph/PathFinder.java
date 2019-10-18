@@ -34,54 +34,51 @@ public enum PathFinder {
 	 */
 	FORWARD {
 
-		@Override
-		public <T> Optional<List<T>> getPath(Collection<Edge<T>> edges, T from, T to, boolean directed) {
-			Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = PathFinder.createToIndexCollector(HashMap::new);
-			Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
-			if (!directed) {
-				Collector<Edge<T>, ?, Map<T, Collection<T>>> toForwardIndex =  PathFinder
-						.createToIndexCollector(() -> forwardIndex);
-				edges.stream().map(Edge::getReversed).collect(toForwardIndex);
-			}
-			Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
-			Set<T> keySet = Collections.singleton(to);
-			SearchState<T> searchState = SearchState.create(from, forwardIndex, forwardTracks, keySet);
-			Optional<T> bridge = Optional.empty();
-			for (; !searchState.queue.isEmpty() && !bridge.isPresent(); bridge = searchState
-					.stepAndReachTarget());
-			return bridge.map((T t) -> PathFinder.addToResult(t, searchState.backTrace, new LinkedList<>()));
-		}
+	    public <T> Optional<List<T>> getPath(Graph<T> graph, T from, T to) {
+	        Collection<Edge<T>> edges = graph.getEdges();
+            Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = PathFinder.createToIndexCollector(HashMap::new);
+            Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
+            if (!graph.isDirected()) {
+            	Collector<Edge<T>, ?, Map<T, Collection<T>>> toForwardIndex =  PathFinder
+            			.createToIndexCollector(() -> forwardIndex);
+            	edges.stream().map(Edge::getReversed).collect(toForwardIndex);
+            }
+            Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
+            Set<T> keySet = Collections.singleton(to);
+            SearchState<T> searchState = SearchState.create(from, forwardIndex, forwardTracks, keySet);
+            Optional<T> bridge = Optional.empty();
+            for (; !searchState.queue.isEmpty() && !bridge.isPresent(); bridge = searchState
+            		.stepAndReachTarget());
+            return bridge.map((T t) -> PathFinder.addToResult(t, searchState.backTrace, new LinkedList<>()));
+	    }
 	};
 
-	public <T> Optional<List<T>> getPath(Collection<Edge<T>> edges, T from, T to, boolean directed2) {
-		Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = PathFinder.createToIndexCollector(HashMap::new);
-		Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
-		Collector<Edge<T>, ?, Map<T, Collection<T>>> toBackwardIndex = directed2 ? toNewIndex : PathFinder
-				.createToIndexCollector(() -> forwardIndex);
-		// if !this.directed then shall appear physically the same object as
-		// forwardIndex
-		Map<T, Collection<T>> backwardIndex = edges.stream().map(Edge::getReversed).collect(toBackwardIndex);
-		Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
-		Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
-		SearchState<T> forwardSearchState = SearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet());
-		SearchState<T> backwardSearchState = SearchState.create(to, backwardIndex, backwardTracks, forwardTracks.keySet());
-		Optional<T> bridge = Optional.empty();
-		while (!forwardSearchState.queue.isEmpty() && !backwardSearchState.queue.isEmpty() && !bridge.isPresent()) {
-			bridge = forwardSearchState.stepAndReachTarget();
-			if (!bridge.isPresent()) {
-				bridge = ((SearchState<T>) backwardSearchState).stepAndReachTarget();
-			}
-		}
-		return bridge.map((T t) -> {
-			LinkedList<T> result = PathFinder.addToResult(backwardSearchState.backTrace.get(t),
-					backwardSearchState.backTrace, new LinkedList<>());
-			Collections.reverse(result);
-			return PathFinder.addToResult(t, forwardSearchState.backTrace, result);
-		});
-	}
-
-	public <T> Optional<List<T>> getPath(Graph<T> graph, T from, T to) {
-		return getPath( graph.getEdges(), from, to, graph.isDirected());
+    public <T> Optional<List<T>> getPath(Graph<T> graph, T from, T to) {
+		Collection<Edge<T>> edges = graph.getEdges();
+        Collector<Edge<T>, ?, Map<T, Collection<T>>> toNewIndex = PathFinder.createToIndexCollector(HashMap::new);
+        Map<T, Collection<T>> forwardIndex = edges.stream().collect(toNewIndex);
+        Collector<Edge<T>, ?, Map<T, Collection<T>>> toBackwardIndex = graph.isDirected() ? toNewIndex : PathFinder
+        		.createToIndexCollector(() -> forwardIndex);
+        // if !this.directed then shall appear physically the same object as
+        // forwardIndex
+        Map<T, Collection<T>> backwardIndex = edges.stream().map(Edge::getReversed).collect(toBackwardIndex);
+        Map<T, T> forwardTracks = new HashMap<>(Collections.singletonMap(from, null));
+        Map<T, T> backwardTracks = new HashMap<>(Collections.singletonMap(to, null));
+        SearchState<T> forwardSearchState = SearchState.create(from, forwardIndex, forwardTracks, backwardTracks.keySet());
+        SearchState<T> backwardSearchState = SearchState.create(to, backwardIndex, backwardTracks, forwardTracks.keySet());
+        Optional<T> bridge = Optional.empty();
+        while (!forwardSearchState.queue.isEmpty() && !backwardSearchState.queue.isEmpty() && !bridge.isPresent()) {
+        	bridge = forwardSearchState.stepAndReachTarget();
+        	if (!bridge.isPresent()) {
+        		bridge = ((SearchState<T>) backwardSearchState).stepAndReachTarget();
+        	}
+        }
+        return bridge.map((T t) -> {
+        	LinkedList<T> result = PathFinder.addToResult(backwardSearchState.backTrace.get(t),
+        			backwardSearchState.backTrace, new LinkedList<>());
+        	Collections.reverse(result);
+        	return PathFinder.addToResult(t, forwardSearchState.backTrace, result);
+        });
 	}
 
 	private static <T> LinkedList<T> addToResult(T start, Map<T, T> backTrace, LinkedList<T> result) {
