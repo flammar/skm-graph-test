@@ -2,8 +2,6 @@ package name.skm.graph_test.graph;
 
 import java.util.Collection;
 
-import name.skm.graph_test.graph.Graph.Edge;
-
 public interface GraphLike<T> {
 
 	boolean isDirected();

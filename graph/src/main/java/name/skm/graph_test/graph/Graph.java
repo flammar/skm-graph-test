@@ -4,9 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
-import lombok.Data;
-import lombok.NonNull;
-
 public class Graph<T> implements GraphLike<T> {
 
     private boolean directed = true;
@@ -15,23 +12,6 @@ public class Graph<T> implements GraphLike<T> {
 
 	private Collection<Edge<T>> edges = new HashSet<>();
 	
-	@Data
-	public static class Edge<T> {
-	    public Edge(T from, T to) {
-	        this.from = from;
-	        this.to = to;
-	    }
-	
-	    @NonNull
-	    private T from;
-	    @NonNull
-	    private T to;
-	
-	    public Edge<T> getReversed() {
-	        return new Edge<T>(to, from);
-	    }
-	}
-
 	/* (non-Javadoc)
 	 * @see name.skm.graph_test.graph.GraphLike#isDirected()
 	 */

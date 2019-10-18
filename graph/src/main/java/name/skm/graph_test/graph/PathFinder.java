@@ -13,8 +13,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import name.skm.graph_test.graph.Graph.Edge;
-
 public enum PathFinder {
 	BIDIRECTIONAL, FORWARD {
 
