@@ -7,7 +7,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -15,14 +17,28 @@ import org.junit.Test;
  */
 public class AppTest {
 
-	/**
-	 * The Test :-)
-	 */
-	@Test
-	public void shouldAnswerWithTrue() {
-		GraphImpl<Integer> graph = new GraphImpl<Integer>();
+	private GraphImpl<Integer> graph;
+
+    @Test
+	public void testForward() {
+        testPathFinder(PathFinder.FORWARD);
+    }
+
+    @Test
+    public void testBidirectional() {
+        testPathFinder(PathFinder.BIDIRECTIONAL);
+    }
+
+	@Before
+	public void before() {
+        graph = new GraphImpl<Integer>();
 		graph.addEdge(1, 5);
 		graph.addEdge(1, 6);
+        // repeating edges
+        graph.addEdge(1, 6);
+		// self-looped edges
+        graph.addEdge(6, 6);
+        graph.addEdge(5, 5);
 		graph.addEdge(88, 100);
 		graph.addEdge(99, 100);
 		graph.addEdge(5, 10);
@@ -36,29 +52,60 @@ public class AppTest {
 		graph.addEdge(16, 88);
         graph.addEdge(200, 6);
         graph.addEdge(100, 5);
-        
-    	testPathFinder(PathFinder.BIDIRECTIONAL, graph);
-    	testPathFinder(PathFinder.FORWARD, graph);
+        graph.addEdge(null, 5);
+        graph.addEdge(null, 6);
+    }
 
-	}
-
-	private void testPathFinder(PathFinder pf, GraphImpl<Integer> graph) {
+	private void testPathFinder(PathFinder pf) {
         graph.setDirected(true);
-		Optional<List<Integer>> path = pf.getPath(graph, 1, 100);
-		assertTrue( path.isPresent() );
-//        System.out.println(path);
-		assertEquals(path.get(), Arrays.asList(1, 6, 16, 88, 100));
-		Optional<List<Integer>> path2 = pf.getPath(graph, 1, 200);
-//        System.out.println(path2);
-        assertFalse( path2.isPresent() );
+		assertPathIs(getNormalPath(pf), Arrays.asList(1, 6, 16, 88, 100));
+        assertPathIs(getNormalNullPath(pf), Arrays.asList(null, 6, 16, 88, 100));
+        assertPathIs(getBidirOnlyPath(pf), null);
+        assertPathIs(getBidirOnlyNullPath(pf), null);
+
+        assertPathIs(toValuePathOptional(pf.getPath(graph, 1, 1)), Arrays.asList((Integer)1));
+        assertPathIs(toValuePathOptional(pf.getPath(graph, null, null)), Arrays.asList((Integer)null));
+        
+		// when the graph is not directed paths become passable and/or shorter
         graph.setDirected(false);
-        Optional<List<Integer>> path3 = pf.getPath(graph, 1, 100);
-        assertTrue( path3.isPresent() );
-        assertEquals(path3.get(), Arrays.asList(1, 5, 100));
-//        System.out.println(path3);
-        Optional<List<Integer>> path4 = pf.getPath(graph, 1, 200);
-        assertTrue( path4.isPresent() );
-        assertEquals(path4.get(), Arrays.asList(1, 6, 200));
-//        System.out.println(path4);
+        assertPathIs(getNormalPath(pf), Arrays.asList(1, 5, 100));
+        assertPathIs(getNormalNullPath(pf), Arrays.asList(null, 5, 100));
+        assertPathIs(getBidirOnlyPath(pf), Arrays.asList(1, 6, 200));
+        assertPathIs(getBidirOnlyNullPath(pf), Arrays.asList(null, 6, 200));
+
+        assertPathIs(toValuePathOptional(pf.getPath(graph, 1, 1)), Arrays.asList((Integer)1));
+        assertPathIs(toValuePathOptional(pf.getPath(graph, null, null)), Arrays.asList((Integer)null));
+
 	}
+
+    public void assertPathIs(Optional<List<Integer>> path, List<Integer> list) {
+        if(list != null) {
+            assertTrue( path.isPresent() );
+//          System.out.println(path);
+            assertEquals(path.get(), list);
+        } else {
+            assertFalse( path.isPresent() );
+        }
+    }
+
+    private Optional<List<Integer>> getBidirOnlyPath(PathFinder pf) {
+        return toValuePathOptional(pf.getPath(graph, 1, 200));
+    }
+
+    private Optional<List<Integer>> getBidirOnlyNullPath(PathFinder pf) {
+        return toValuePathOptional(pf.getPath(graph, null, 200));
+    }
+
+    private Optional<List<Integer>> getNormalPath(PathFinder pf) {
+        return toValuePathOptional(pf.getPath(graph, 1, 100));
+    }
+
+    private Optional<List<Integer>> getNormalNullPath(PathFinder pf) {
+        return toValuePathOptional(pf.getPath(graph, null, 100));
+    }
+
+    private static <T> Optional<List<T>> toValuePathOptional(Optional<List<Vertex<T>>> path) {
+        return path.map((l) -> l.stream().map(Vertex::getValue).collect(Collectors.toList()));
+    }
+
 }

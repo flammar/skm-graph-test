@@ -9,21 +9,23 @@ public interface Graph<T> {
 	void setDirected(boolean directed);
 
 	/**
-	 * @param vertex
-	 * @return <tt>true</tt> if this graph did not already contain the specified
-	 *         vertex
+	 * Creates or finds and adds vertex for the value
+	 * 
+	 * @param value
+	 * @return {@link Vertex} which contains the value
 	 */
-	boolean addVertex(T vertex);
+	Vertex<T> addVertex(T value);
 
 	/**
+	 * Creates or finds and adds edge connecting the values
+	 * 
 	 * @param from
 	 * @param to
-	 * @return <tt>true</tt> if this graph did not already contain an edge with the
-	 *         specified vertices
+	 * @return {@link Edge} containing vertices with the values 
 	 */
-	boolean addEdge(T from, T to);
+	Edge<T> addEdge(T from, T to);
 
-	Collection<T> getVertices();
+	Collection<Vertex<T>> getVertices();
 
 	Collection<Edge<T>> getEdges();
 

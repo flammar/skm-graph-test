@@ -1,23 +1,34 @@
 package name.skm.graph_test.graph;
 
-public class Edge<T> {
+import java.io.Serializable;
+
+public class Edge<T> implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3504876715525336156L;
+    private Vertex<T> from;
+    private Vertex<T> to;
+
     public Edge(T from, T to) {
+        this(new Vertex<>(from), new Vertex<>(to));
+    }
+
+    public Edge(Vertex<T> from, Vertex<T> to) {
+        super();
         this.from = from;
         this.to = to;
     }
-
-    private T from;
-    private T to;
 
     public Edge<T> getReversed() {
         return new Edge<T>(to, from);
     }
 
-    public T getFrom() {
+    public Vertex<T> getFrom() {
         return from;
     }
 
-    public T getTo() {
+    public Vertex<T> getTo() {
         return to;
     }
 
@@ -50,5 +61,10 @@ public class Edge<T> {
         } else if (!to.equals(other.to))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Edge [from=" + from + ", to=" + to + "]";
     }
 }
